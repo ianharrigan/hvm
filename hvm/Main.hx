@@ -7,7 +7,7 @@ class Main {
             HVM.log("");
             HVM.log("Haxe Version Manager");
             HVM.log("");
-            HVM.log("Compilers dir: " + HVM.compilersDir);
+            //HVM.log("Compilers dir: " + HVM.compilersDir);
             
             var args = Sys.args();
             var workingDir = args.pop();
