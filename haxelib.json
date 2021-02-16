@@ -1,0 +1,15 @@
+{
+    "version": "0.0.0",
+    "contributors": [
+        "ianharrigan"
+    ],
+    "license": "MIT",
+    "tags": [
+    ],
+    "releasenote": "",
+    "dependencies": {
+    },
+    "name": "hvm",
+    "description": "Haxe Version Manager",
+    "url": "https://github.com/ianharrigan/hvm"
+}

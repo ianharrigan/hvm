@@ -1,0 +1,3 @@
+-cp hvm
+-neko run.n
+-main hvm.Main
