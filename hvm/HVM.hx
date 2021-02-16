@@ -265,6 +265,10 @@ class HVM {
                 log("       Closing the IDE and re-running the command may fix the issue");
                 return;
             }
+        }
+        var backupExists:Bool = FileSystem.exists(haxeStdLocation + ".backup");
+        if (backupExists == false) {
+            log("Backing up existing haxe std folder");
             try {
                 FileSystem.rename(haxeStdLocation, haxeStdLocation + ".backup");
             } catch (e) {
@@ -315,17 +319,20 @@ class HVM {
                 log("       Closing the IDE and re-running the command may fix the issue");
                 return;
             }
+        }
+        var backupExists:Bool = FileSystem.exists(haxeStdLocation + ".backup");
+        if (backupExists == false) {
+            log("Backing up existing haxe std folder");
             try {
                 FileSystem.rename(haxeStdLocation, haxeStdLocation + ".backup");
             } catch (e) {
                 log("");
                 log("ERROR: could not rename haxe std folder, it's likely it was locked by another process.");
                 log("");
-                log("       If you are using HaxeDevelop it's possible it has locked this folder");
-                log("       Closing HaxeDevelop and re-running the command may fix the issue");
+                log("       If you are using and IDE it's possible it has locked this folder");
+                log("       Closing the IDE and re-running the command may fix the issue");
                 return;
             }
-            File.copy(location, location + ".backup");
         }
 
 
