@@ -195,7 +195,48 @@ class HVM {
         return Unknown;
     }
     
+    public static function checkPrerequisites() {
+        var location = haxeLocation;
+        var pathParts = location.split("/");
+        pathParts.pop();
+        var haxeStdLocation = Path.normalize(pathParts.join("/") + "/std");
+
+        if (FileSystem.exists(location)) {
+            try {
+                FileSystem.rename(location, location + ".temp");
+                FileSystem.rename(location + ".temp", location);
+            } catch (e:Dynamic) {
+                log("");
+                log("ERROR: could not rename haxe, it's likely it was locked by another process.");
+                log("");
+                log("       If you are using an IDE it's possible it has locked this folder");
+                log("       Closing the IDE and re-running the command may fix the issue");
+                return false;
+            }
+        }
+
+        if (FileSystem.exists(location)) {
+            try {
+                FileSystem.rename(haxeStdLocation, haxeStdLocation + ".temp");
+                FileSystem.rename(haxeStdLocation + ".temp", haxeStdLocation);
+            } catch (e:Dynamic) {
+                log("");
+                log("ERROR: could not rename haxe, it's likely it was locked by another process.");
+                log("");
+                log("       If you are using an IDE it's possible it has locked this folder");
+                log("       Closing the IDE and re-running the command may fix the issue");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static function restoreBackup() {
+        if (!checkPrerequisites()) {
+            return;
+        }
+
         var location = haxeLocation;
         var pathParts = location.split("/");
         pathParts.pop();
@@ -213,8 +254,8 @@ class HVM {
                     log("");
                     log("ERROR: could not rename haxe std folder, it's likely it was locked by another process.");
                     log("");
-                    log("       If you are using HaxeDevelop it's possible it has locked this folder");
-                    log("       Closing HaxeDevelop and re-running the command may fix the issue");
+                    log("       If you are using an IDE it's possible it has locked this folder");
+                    log("       Closing the IDE and re-running the command may fix the issue");
                     return;
                 }
             }
@@ -230,8 +271,8 @@ class HVM {
                 log("");
                 log("ERROR: could not rename haxe std folder, it's likely it was locked by another process.");
                 log("");
-                log("       If you are using HaxeDevelop it's possible it has locked this folder");
-                log("       Closing HaxeDevelop and re-running the command may fix the issue");
+                log("       If you are using an IDE it's possible it has locked this folder");
+                log("       Closing the IDE and re-running the command may fix the issue");
                 return;
             }
             
@@ -242,6 +283,10 @@ class HVM {
     }
     
     public static function installOfficial(version:String) {
+        if (!checkPrerequisites()) {
+            return;
+        }
+
         downloadOfficial(version);
         
         var location = haxeLocation;
@@ -297,6 +342,10 @@ class HVM {
     }
     
     public static function installNightly(version:String) {
+        if (!checkPrerequisites()) {
+            return;
+        }
+
         downloadNightly(version);
         
         var location = haxeLocation;
@@ -334,8 +383,6 @@ class HVM {
                 return;
             }
         }
-
-
         
         log("Deleting existing haxe");
         if (FileSystem.exists(location)) {
