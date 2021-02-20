@@ -215,7 +215,7 @@ class HVM {
             }
         }
 
-        if (FileSystem.exists(location)) {
+        if (FileSystem.exists(haxeStdLocation)) {
             try {
                 FileSystem.rename(haxeStdLocation, haxeStdLocation + ".temp");
                 FileSystem.rename(haxeStdLocation + ".temp", haxeStdLocation);
@@ -259,7 +259,7 @@ class HVM {
                     return;
                 }
             }
-            
+
             if (FileSystem.exists(location)) {
                 FileSystem.deleteFile(location);
             }
@@ -276,7 +276,10 @@ class HVM {
                 return;
             }
             
-            File.copy(location + ".backup", location);
+            if (FileSystem.exists(location + ".backup")) {
+                File.copy(location + ".backup", location);
+                FileSystem.deleteFile(location + ".backup");
+            }
         }
         
         log("Current haxe version: " + currentHaxeVersion);
@@ -288,6 +291,8 @@ class HVM {
         }
 
         downloadOfficial(version);
+		
+		restoreBackup();
         
         var location = haxeLocation;
         var pathParts = location.split("/");
@@ -311,7 +316,8 @@ class HVM {
                 return;
             }
         }
-        var backupExists:Bool = FileSystem.exists(haxeStdLocation + ".backup");
+		
+        backupExists = FileSystem.exists(haxeStdLocation + ".backup");
         if (backupExists == false) {
             log("Backing up existing haxe std folder");
             try {
@@ -347,11 +353,14 @@ class HVM {
         }
 
         downloadNightly(version);
+		
+		restoreBackup();
         
         var location = haxeLocation;
         var pathParts = location.split("/");
         pathParts.pop();
         var haxeStdLocation = Path.normalize(pathParts.join("/") + "/std");
+
         var backupExists:Bool = FileSystem.exists(location + ".backup");
         if (backupExists == false) {
             log("Backing up existing haxe");
@@ -369,7 +378,8 @@ class HVM {
                 return;
             }
         }
-        var backupExists:Bool = FileSystem.exists(haxeStdLocation + ".backup");
+		
+        backupExists = FileSystem.exists(haxeStdLocation + ".backup");
         if (backupExists == false) {
             log("Backing up existing haxe std folder");
             try {
