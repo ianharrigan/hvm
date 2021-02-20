@@ -57,7 +57,7 @@ class Main {
                     HVM.installOfficial(official);
                 } else {
                     HVM.log("");
-                    HVM.log("Nightly '" + args[1] + "' not found");
+                    HVM.log("Official '" + args[1] + "' not found");
                     HVM.log("");
                     list(["official"]);
                 }
