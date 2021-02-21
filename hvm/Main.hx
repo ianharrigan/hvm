@@ -70,7 +70,7 @@ class Main {
                     list(["nightly"]);
                     return;
                 }
-                var nightly = HVM.resovleNightly(args[1]);
+                var nightly = HVM.resolveNightly(args[1]);
                 if (nightly != null) {
                     HVM.log("Nightly found " + args[1] + " => " + nightly);
                     HVM.installNightly(nightly);
