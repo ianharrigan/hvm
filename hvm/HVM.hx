@@ -13,7 +13,6 @@ class HVM {
     public static var compilersDir:String = null;
     
     public static function init() {
-        //compilersDir = "c:\\temp\\hvm_test\\compilers";
         if (compilersDir == null) {
             compilersDir = Path.normalize(Sys.getCwd() + "/compilers");
         }
@@ -140,7 +139,7 @@ class HVM {
         return list;
     }
 
-    public static function resovleNightly(id:String):String {
+    public static function resolveNightly(id:String):String {
         var zip = null;
         var url = "https://build.haxe.org/builds/haxe/";
         switch (system) {
@@ -176,7 +175,7 @@ class HVM {
             }
         }
         http.onError = function(error) {
-            throw "    Problem listing nightly releases: " + error;
+            throw "    Problem resolving nightly releases: " + error;
         }
         http.request();
         
@@ -221,7 +220,7 @@ class HVM {
                 FileSystem.rename(haxeStdLocation + ".temp", haxeStdLocation);
             } catch (e:Dynamic) {
                 log("");
-                log("ERROR: could not rename haxe, it's likely it was locked by another process.");
+                log("ERROR: could not rename haxe std folder, it's likely it was locked by another process.");
                 log("");
                 log("       If you are using an IDE it's possible it has locked this folder");
                 log("       Closing the IDE and re-running the command may fix the issue");
