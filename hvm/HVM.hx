@@ -59,21 +59,47 @@ class HVM {
         return list;
     }
     
-    public static function listOfficial():Array<String> {
+    public static function listOfficial(?url:String):Array<String> {
         var list = [];
         
-        var http = new Http("https://api.github.com/repos/HaxeFoundation/haxe/releases?per_page=100");
+        var url:String = url != null ? url : "https://api.github.com/repos/HaxeFoundation/haxe/releases?per_page=100";
+        var http = new Http(url);
         http.setHeader("User-Agent", "HVM");
+        var httpsFailed:Bool = false;
+        var httpStatus:Int = -1;
         http.onStatus = function(status:Int) {
+            httpStatus = status;
+            if (status == 302) { // follow redirects
+                var location = http.responseHeaders.get("location");
+                if (location == null) {
+                    location = http.responseHeaders.get("Location");
+                }
+                if (location != null) {
+                    listOfficial(location);
+                } else {
+                    throw "302 (redirect) encountered but no 'location' header found";
+                }
+            }
         }
         http.onData = function(data:String) {
-            var jsonArray:Array<Dynamic> = Json.parse(data);
-            for (item in jsonArray) {
-                list.push(item.name);
+            if (data != null && data.length > 0) {
+                var jsonArray:Array<Dynamic> = Json.parse(data);
+                for (item in jsonArray) {
+                    list.push(item.name);
+                }
+            } else {
+                throw "    Problem listing official releases: No list data returned from url";
             }
         }
         http.onError = function(error) {
-            throw "    Problem listing official releases: " + error;
+            if (!httpsFailed && url.indexOf("https:") > -1) {
+                httpsFailed = true;
+                log("Problem listing official releases using http secure: " + error);
+                log("Trying again with http insecure...");
+                listOfficial( StringTools.replace(url, "https", "http") );
+            } else {
+                throw "    Problem listing official releases: " + error;
+            }
         }
         http.request();
         
@@ -88,10 +114,10 @@ class HVM {
         return version;
     }
 
-    public static function listNightly(max:Int = 0xffffff):Array<String> {
+    public static function listNightly(max:Int = 0xffffff, ?url:String):Array<String> {
         var list = [];
         
-        var url = "https://build.haxe.org/builds/haxe/";
+        var url:String = url != null ? url : "https://build.haxe.org/builds/haxe/";
         switch (system) {
             case Linux:
                 url += "linux64/";
@@ -105,34 +131,59 @@ class HVM {
         
         var http = new Http(url);
         http.setHeader("User-Agent", "HVM");
+        var httpsFailed:Bool = false;
+        var httpStatus:Int = -1;
         http.onStatus = function(status:Int) {
-        }
-        http.onData = function(data:String) {
-            var n1 = data.indexOf("<pre>");
-            var n2 = data.indexOf("</pre>", n1);
-            data = data.substring(n1 + 5, n2);
-            
-            n1 = data.indexOf("<a href=\"");
-            var count = 0;
-            while (n1 != -1) {
-                n2 = data.indexOf("\"", n1 + 9);
-                var href = data.substring(n1 + 9, n2);
-                var version = StringTools.replace(href, "haxe_", "");
-                version = StringTools.replace(version, ".zip", "");
-                var parts = version.split("_");
-                version = parts.pop();
-                if (version.indexOf("/") == -1) {
-                    list.push(version);
+            httpStatus = status;
+            if (status == 302) { // follow redirects
+                var location = http.responseHeaders.get("location");
+                if (location == null) {
+                    location = http.responseHeaders.get("Location");
                 }
-                n1 = data.indexOf("<a href=\"", n2);
-                count++;
-                if (count >= max) {
-                    break;
+                if (location != null) {
+                    listNightly(0xffffff, location);
+                } else {
+                    throw "302 (redirect) encountered but no 'location' header found";
                 }
             }
         }
+        http.onData = function(data:String) {
+            if (data != null && data.length > 0) {
+                var n1 = data.indexOf("<pre>");
+                var n2 = data.indexOf("</pre>", n1);
+                data = data.substring(n1 + 5, n2);
+                
+                n1 = data.indexOf("<a href=\"");
+                var count = 0;
+                while (n1 != -1) {
+                    n2 = data.indexOf("\"", n1 + 9);
+                    var href = data.substring(n1 + 9, n2);
+                    var version = StringTools.replace(href, "haxe_", "");
+                    version = StringTools.replace(version, ".zip", "");
+                    var parts = version.split("_");
+                    version = parts.pop();
+                    if (version.indexOf("/") == -1) {
+                        list.push(version);
+                    }
+                    n1 = data.indexOf("<a href=\"", n2);
+                    count++;
+                    if (count >= max) {
+                        break;
+                    }
+                }
+            } else {
+                throw "    Problem listing official releases: No list data returned from url";
+            }
+        }
         http.onError = function(error) {
-            throw "    Problem listing nightly releases: " + error;
+            if (!httpsFailed && url.indexOf("https:") > -1) {
+                httpsFailed = true;
+                log("Problem listing nightly releases using http secure: " + error);
+                log("Trying again with http insecure...");
+                listNightly( 0xffffff, StringTools.replace(url, "https", "http") );
+            } else {
+                throw "    Problem listing nightly releases: " + error;
+            }
         }
         http.request();
         
@@ -502,6 +553,7 @@ class HVM {
         }
         
         var http = new Http(srcUrl);
+        var httpsFailed:Bool = false;
         var httpStatus:Int = -1;
         http.onStatus = function(status:Int) {
             httpStatus = status;
@@ -524,7 +576,14 @@ class HVM {
             }
         }
         http.onError = function(error) {
-            throw "    Problem downloading file: " + error;
+            if (!httpsFailed && srcUrl.indexOf("https:") > -1) {
+                httpsFailed = true;
+                log("Problem downloading file using http secure: " + error);
+                log("Trying again with http insecure...");
+                downloadFile( StringTools.replace(srcUrl, "https", "http"), dstFile);
+            } else {
+                throw "    Problem downloading file: " + error;
+            }
         }
         http.request();
     }
