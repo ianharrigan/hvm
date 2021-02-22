@@ -176,7 +176,6 @@ class HVM {
             }
         }
         http.onError = function(error) {
-            throw "    Problem listing nightly releases: " + error;
             if (!httpsFailed && url.indexOf("https:") > -1) {
                 httpsFailed = true;
                 log("Problem listing nightly releases using http secure: " + error);
